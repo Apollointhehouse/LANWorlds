@@ -1,12 +1,12 @@
 {
   "schemaVersion": 1,
-  "id": "examplemod",
+  "id": "lanworlds",
   "version": "${version}",
 
-  "name": "Example Mod",
-  "description": "This mod aims to help new BTA modders.",
+  "name": "LAN Worlds",
+  "description": "For people who don't know how to start a server.",
   "authors": [
-    "Turnip Labs"
+    "Apollointhehouse"
   ],
   "contact": {
     "homepage": "",
@@ -20,30 +20,24 @@
     "main": [
       {
         "adapter": "kotlin",
-        "value": "turniplabs.examplemod.ExampleMod"
+        "value": "io.github.apollointhehouse.LANWorlds"
       }
     ],
     "beforeGameStart": [
       {
         "adapter": "kotlin",
-        "value": "turniplabs.examplemod.ExampleMod"
+        "value": "io.github.apollointhehouse.LANWorlds"
       }
 		],
     "afterGameStart": [
       {
         "adapter": "kotlin",
-        "value": "turniplabs.examplemod.ExampleMod"
-      }
-		],
-    "recipesReady": [
-      {
-        "adapter": "kotlin",
-        "value": "turniplabs.examplemod.ExampleMod"
+        "value": "io.github.apollointhehouse.LANWorlds"
       }
 		]
   },
   "mixins": [
-    "examplemod.mixins.json"
+    "lanworlds.mixins.json"
   ],
 
   "depends": {
