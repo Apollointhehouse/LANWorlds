@@ -14,14 +14,14 @@ class CustomGuiScreen(
 
 		controlList.clear()
 		controls.fold(0) { id, btn ->
-			controlList.add(GuiButton(id, btn.x, btn.y, btn.text))
+			controlList.add(GuiButton(id, btn.x, btn.y, btn.width, btn.height, btn.text))
 			id + 1
 		}
 	}
 
 	override fun drawScreen(mouseX: Int, mouseY: Int, delta: Float) {
 		onDraw?.invoke(this, mouseX, mouseY, delta)
-		texts.forEach { drawStringCentered(fontRenderer, it.text, it.x, it.y, 16777215) }
+		texts.forEach { drawStringCentered(fontRenderer, it.text, it.x, it.y, 0xFFFFFF) }
 		super.drawScreen(mouseX, mouseY, delta)
 	}
 }

@@ -13,13 +13,13 @@ val creatingServer = gui {
 		button(
 			"gui.connecting.button.cancel",
 			width / 2 - 100,
-			height / 4 + 120 + 12
+			height / 4 + 120 + 12,
 		) {
 			mc.displayGuiScreen(GuiMainMenu())
 		}
 	}
 
 	onDraw { _, _, _ ->
-		drawDefaultBackground()
+		drawBackground()
 	}
 }

@@ -4,7 +4,8 @@
   "package": "io.github.apollointhehouse.mixin",
   "compatibilityLevel": "JAVA_8",
   "mixins": [
-    "WorldAccessor"
+    "WorldAccessor",
+    "GuiIngameMenuMixin"
   ],
   "injectors": {
     "defaultRequire": 1

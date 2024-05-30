@@ -1,5 +1,6 @@
 package io.github.apollointhehouse.server
 
+import io.github.apollointhehouse.LANWorlds
 import io.github.apollointhehouse.LANWorlds.LOGGER
 import io.github.apollointhehouse.mixin.WorldAccessor
 import io.github.apollointhehouse.server.ServerUtils.downloadFile
@@ -45,10 +46,18 @@ class Server private constructor(val hostUser: String, val name: String) {
 		return Result.Success(this)
 	}
 
-	fun stopServer() {
-		val out = process?.outputWriter() ?: error("Process has no output stream")
-		out.write("stop\n")
+	fun stopServer(): Result<Server> {
+		val out = process?.outputWriter() ?: return Result.Error("Failed to create buffered writer!")
+		runCatching {
+			out.write("stop\n")
+			out.flush()
+		}.onFailure {
+			LOGGER.error("Failed to write to process out!")
+			return Result.Error("Failed to write to process out!")
+		}
+		LANWorlds.server = null
 		LOGGER.info("Stopped server!")
+		return Result.Success(this)
 	}
 
 	companion object {

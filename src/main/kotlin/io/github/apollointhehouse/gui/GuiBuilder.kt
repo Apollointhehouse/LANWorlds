@@ -26,8 +26,8 @@ class GuiBuilder {
 		texts.add(Text(x, y, i18n.translateKey(text)))
 	}
 
-	fun GuiScreen.button(name: String, x: Int, y: Int, block: GuiScreen.() -> Unit) {
-		controls.add(Button(x, y, i18n.translateKey(name), block))
+	fun GuiScreen.button(text: String, x: Int, y: Int, width: Int = 200, height: Int = 20,  block: GuiScreen.() -> Unit) {
+		controls.add(Button(x, y, width, height, i18n.translateKey(text), block))
 	}
 
 	fun build(): GuiScreen {
@@ -37,4 +37,4 @@ class GuiBuilder {
 
 class Text(val x: Int, val y: Int, val text: String)
 
-class Button(val x: Int, val y: Int, val text: String, val block: GuiScreen.() -> Unit)
+class Button(val x: Int, val y: Int, val width: Int, val height: Int, val text: String, val block: GuiScreen.() -> Unit)

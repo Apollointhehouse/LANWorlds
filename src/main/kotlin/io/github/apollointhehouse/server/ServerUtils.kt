@@ -79,26 +79,27 @@ object ServerUtils {
 	}
 
 	fun World.saveTo(saveLocation: String): Result<File> {
-		mc.changeWorld(null)
-		val worldName = this.levelData.worldName
-		when (createDirectory("$saveLocation/$worldName")) {
-			is Result.Error -> return Result.Error("Failed to save world to: $saveLocation!")
-			is Result.Success -> {}
-		}
+		val worldName = levelData.worldName
 		val worldFolder = File("$SAVES_PATH/$worldName")
+		val serverWorldFolder = createDirectory("$saveLocation/$worldName").let { when (it) {
+			is Result.Success -> it.value
+			is Result.Error -> return it
+		}}
+
+		mc.changeWorld(null)
 		runCatching {
-			FileUtils.copyAll(worldFolder, File(saveLocation))
+			FileUtils.copyAll(worldFolder, serverWorldFolder)
 		}.onFailure {
 			return Result.Error("Failed to save world to: $saveLocation!")
 		}
-		return Result.Success(worldFolder)
+		return Result.Success(serverWorldFolder)
 	}
 
 	fun EntityPlayer.saveTo(path: String): Result<File> {
 		val datFile = File(path)
 		val playerData = CompoundTag()
 		runCatching {
-			this.saveWithoutId(playerData)
+			saveWithoutId(playerData)
 			datFile.parentFile.mkdirs()
 			if (!datFile.exists()) datFile.createNewFile()
 			NbtIo.writeCompressed(playerData, datFile.outputStream())
@@ -116,21 +117,5 @@ object ServerUtils {
 			return Result.Error("Failed to create file: $path!")
 		}
 		return Result.Success(file)
-	}
-
-	fun removeServer(name: String) {
-		File("$SERVERS_PATH$name").apply {
-			if (!exists()) {
-				LOGGER.error("Server directory does not exist!")
-				return
-			}
-
-			if(!deleteRecursively()) {
-				LOGGER.error("Failed to remove server directory!")
-				return
-			}
-		}
-
-		LOGGER.info("Removed server!")
 	}
 }

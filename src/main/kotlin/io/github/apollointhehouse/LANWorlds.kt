@@ -15,6 +15,7 @@ import io.github.apollointhehouse.utils.Result
 @Suppress("unused")
 object LANWorlds: ModInitializer, GameStartEntrypoint {
     const val MOD_ID: String = "lanworlds"
+	var server: Server? = null
 
     @JvmField
     val LOGGER: Logger = LoggerFactory.getLogger(MOD_ID)
@@ -39,7 +40,7 @@ object LANWorlds: ModInitializer, GameStartEntrypoint {
 			mc.displayGuiScreen(null)
 			mc.displayGuiScreen(creatingServer)
 
-			val server = Server.createServer(world).let { when (it) {
+			server = Server.createServer(world).let { when (it) {
 				is Result.Success -> it.value
 				is Result.Error -> {
 					LOGGER.error(it.message)
@@ -47,7 +48,7 @@ object LANWorlds: ModInitializer, GameStartEntrypoint {
 				}
 			}}
 
-			server.startServer().let { when (it) {
+			server?.startServer()?.let { when (it) {
 				is Result.Success -> it.value
 				is Result.Error -> {
 					LOGGER.error(it.message)
