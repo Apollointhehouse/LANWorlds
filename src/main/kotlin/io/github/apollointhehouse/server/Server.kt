@@ -2,25 +2,54 @@ package io.github.apollointhehouse.server
 
 import io.github.apollointhehouse.LANWorlds
 import io.github.apollointhehouse.LANWorlds.LOGGER
-import io.github.apollointhehouse.mixin.WorldAccessor
 import io.github.apollointhehouse.server.ServerUtils.downloadFile
 import io.github.apollointhehouse.server.ServerUtils.saveTo
-import io.github.apollointhehouse.utils.Result
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.launch
 import net.minecraft.client.Minecraft
-import net.minecraft.client.gui.GuiConnecting
 import net.minecraft.core.world.World
+import net.minecraft.core.world.save.LevelData
 import java.io.File
-import kotlin.concurrent.thread
 
-class Server private constructor(val hostUser: String, val name: String) {
-	private val mc: Minecraft = Minecraft.getMinecraft(this)
+class Server private constructor(val data: LevelData) {
+	private val mc: Minecraft = Minecraft.getMinecraft()
 	private var process: Process? = null
+    private val scope = CoroutineScope(Dispatchers.IO)
 
-	fun startServer(): Result<Server> {
+    val name: String = data.worldName
+
+    constructor(world: World) : this(world.levelData) {
+        val player = world.players[0]
+        val serverFolder = ServerUtils.createDirectory("${ServerUtils.SERVERS_PATH}/$name")
+        LOGGER.info("Created server folder!")
+
+        ServerUtils.serverJarURL.downloadFile("${serverFolder.path}/server.jar")
+        LOGGER.info("Downloaded server.jar!")
+
+        val props = ServerUtils.createServerProperties(data, world)
+        LOGGER.info("Created server properties!")
+
+        props.saveTo("${serverFolder.path}/server.properties")
+        LOGGER.info("Saved server properties!")
+
+        data.saveTo(serverFolder.path)
+        LOGGER.info("Saved world!")
+
+        player.saveTo("${serverFolder.path}/$name/players/${player.username}.dat")
+        LOGGER.info("Saved player data!")
+
+        ServerUtils.createFile("${serverFolder.path}/ops.txt").writeText(player.username)
+
+        LOGGER.info("Created server!")
+    }
+
+	fun startServer(): Job {
 		val serverFolder = File("${mc.minecraftDir.path}/servers/$name").apply {
 			if (!exists()) {
 				LOGGER.error("Server directory does not exist!")
-				return Result.Error("Failed to start server!")
+				error("Failed to start server!")
 			}
 		}
 
@@ -29,97 +58,31 @@ class Server private constructor(val hostUser: String, val name: String) {
 			.directory(serverFolder)
 			.start()
 
-		val out = process?.inputReader() ?: return Result.Error("Failed to create buffered reader!")
+		val out = process?.inputStream?.bufferedReader() ?: error("Failed to create buffered reader!")
 
-		thread {
-			while (true) {
-				val line = out.readLine() ?: break
-				println(line)
-				if (line.isEmpty()) break
-				if (line.contains("Done")) break
-			}
-			mc.displayGuiScreen(null)
-			mc.displayGuiScreen(GuiConnecting(mc, "localhost", 25565))
-		}
+        LOGGER.info("Started server jar!")
 
-		LOGGER.info("Started server jar!")
-		return Result.Success(this)
+        return scope.launch {
+            while (true) {
+                val line = out.readLine() ?: break
+                println(line)
+                if (line.isEmpty()) break
+                if (line.contains("Done", ignoreCase = true)) break
+            }
+        }
 	}
 
-	fun stopServer(): Result<Server> {
-		val out = process?.outputWriter() ?: return Result.Error("Failed to create buffered writer!")
+	fun stopServer(): Server {
+		val out = process?.outputStream?.bufferedWriter() ?: error("Failed to create buffered writer!")
 		runCatching {
 			out.write("stop\n")
 			out.flush()
 		}.onFailure {
-			LOGGER.error("Failed to write to process out!")
-			return Result.Error("Failed to write to process out!")
+			error("Failed to write to process out!")
 		}
+
 		LANWorlds.server = null
 		LOGGER.info("Stopped server!")
-		return Result.Success(this)
+		return this
 	}
-
-	companion object {
-		fun createServer(world: World): Result<Server> {
-			val levelData = (world as WorldAccessor).levelData
-			val worldName = levelData.worldName
-			val player = world.players[0]
-			val serverFolder = ServerUtils.createDirectory("${ServerUtils.SERVERS_PATH}/$worldName").let { when (it) {
-				is Result.Success -> {
-					LOGGER.info("Created server folder!")
-					it.value
-				}
-				is Result.Error -> {
-					return Result.Error("Failed to create server folder!")
-				}
-			}}
-
-			ServerUtils.serverJarURL.downloadFile("${serverFolder.path}/server.jar").let { when (it) {
-				is Result.Success -> LOGGER.info("Downloaded server.jar!")
-				is Result.Error -> {
-					return Result.Error("Failed to download server.jar!")
-				}
-			}}
-
-			val props = ServerUtils.createServerProperties(levelData, world).let { when (it) {
-				is Result.Success -> {
-					LOGGER.info("Created server properties!")
-					it.value
-				}
-				is Result.Error -> return it
-			}}
-
-			props.saveTo("${serverFolder.path}/server.properties").let { when (it) {
-				is Result.Success -> {
-					LOGGER.info("Saved server properties!")
-					it.value
-				}
-				is Result.Error -> return it
-			}}
-
-			world.saveTo(serverFolder.path).let { when (it) {
-				is Result.Success -> {
-					LOGGER.info("Saved world!")
-					it.value
-				}
-				is Result.Error -> return it
-			}}
-
-			player.saveTo("${serverFolder.path}/$worldName/players/${player.username}.dat").let { when (it) {
-				is Result.Success -> {
-					LOGGER.info("Saved player data!")
-					it.value
-				}
-				is Result.Error -> return it
-			}}
-
-			ServerUtils.createFile("${serverFolder.path}/ops.txt").getOrNull()?.writeText(player.username)
-				?: return Result.Error("Failed to create ops.txt!")
-
-			LOGGER.info("Created server!")
-			return Result.Success(Server(player.username, levelData.worldName))
-		}
-	}
-
 }

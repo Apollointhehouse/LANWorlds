@@ -1,50 +1,53 @@
 {
-  "schemaVersion": 1,
-  "id": "lanworlds",
-  "version": "${version}",
+	"schemaVersion": 1,
+	"id": "lanworlds",
+	"version": "${version}",
 
-  "name": "LAN Worlds",
-  "description": "For people who don't know how to start a server.",
-  "authors": [
-    "Apollointhehouse"
-  ],
-  "contact": {
-    "homepage": "",
-    "sources": ""
-  },
+	"name": "Lan Worlds",
+	"description": "This mod aims to help new BTA modders.",
+	"authors": [
+		"Apollointhehouse"
+	],
+	"contact": {
+		"homepage": "",
+		"sources": ""
+	},
 
-  "license": "CC0-1.0",
+	"license": "CC0-1.0",
 
-  "environment": "*",
-  "entrypoints": {
-    "main": [
-      {
-        "adapter": "kotlin",
-        "value": "io.github.apollointhehouse.LANWorlds"
-      }
-    ],
-    "beforeGameStart": [
-      {
-        "adapter": "kotlin",
-        "value": "io.github.apollointhehouse.LANWorlds"
-      }
+	"environment": "*",
+	"entrypoints": {
+		"main": [
+			{
+				"adapter": "kotlin",
+				"value": "io.github.apollointhehouse.LANWorlds"
+			}
 		],
-    "afterGameStart": [
-      {
-        "adapter": "kotlin",
-        "value": "io.github.apollointhehouse.LANWorlds"
-      }
+		"beforeGameStart": [
+			{
+				"adapter": "kotlin",
+				"value": "io.github.apollointhehouse.LANWorlds"
+			}
+		],
+		"afterGameStart": [
+			{
+				"adapter": "kotlin",
+				"value": "io.github.apollointhehouse.LANWorlds"
+			}
 		]
-  },
-  "mixins": [
-    "lanworlds.mixins.json"
-  ],
+	},
+	"mixins": [
+		"lanworlds.mixins.json"
+	],
 
-  "depends": {
-		"minecraft": "~7.1",
-    "fabricloader": ">=0.15.5",
-    "fabric-language-kotlin": "*"
-  },
-  "suggests": {
-  }
+	"depends": {
+		"fabricloader": ">=${fabricloader}",
+		"fabric-language-kotlin": ">=${fabric_language_kotlin}",
+		"halplibe": ">=${halplibe}",
+		"minecraft": "*",
+		"java": ">=${java}"
+	},
+	"suggests": {
+		"modmenu": ">=${modmenu}"
+	}
 }

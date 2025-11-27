@@ -1,13 +1,11 @@
 {
   "required": true,
-  "minVersion": "0.8",
   "package": "io.github.apollointhehouse.mixin",
-  "compatibilityLevel": "JAVA_8",
-  "mixins": [
-    "WorldAccessor",
-    "GuiIngameMenuMixin"
-  ],
+  "compatibilityLevel": "JAVA_${java}",
   "injectors": {
     "defaultRequire": 1
-  }
+  },
+  "mixins": [],
+  "client": [
+  ]
 }
