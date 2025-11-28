@@ -29,6 +29,7 @@ val legacyLwjglVersion = providers.gradleProperty("legacy_lwjgl_version")
 
 val halplibeVersion = providers.gradleProperty("halplibe_version")
 val modMenuVersion = providers.gradleProperty("mod_menu_version")
+val raywireVersion = providers.gradleProperty("raywire_version")
 
 val slf4jApiVersion = providers.gradleProperty("slf4j_api_version")
 val log4jVersion = providers.gradleProperty("log4j_version")
@@ -81,6 +82,9 @@ dependencies {
 	// If you do not need Halplibe you can comment out or delete this line.
 	modImplementation("turniplabs:halplibe:${halplibeVersion.get()}")
 	modImplementation("turniplabs:modmenu-bta:${modMenuVersion.get()}")
+	modImplementation("com.github.Apollointhehouse:Raywire:${raywireVersion.get()}")
+
+
 	modImplementation("net.fabricmc:fabric-loader:${loaderVersion.get()}")
 	modImplementation("com.github.Better-than-Adventure:legacy-lwjgl3:${legacyLwjglVersion.get()}")
 	modImplementation("net.fabricmc:fabric-language-kotlin:${fabricLanguageKotlinVersion.get()}") {
@@ -130,6 +134,7 @@ tasks {
 		compilerOptions {
 			extraWarnings = true
 			jvmTarget = JvmTarget.valueOf("JVM_${if (javaVersion.get() == "8") "1_8" else javaVersion.get()}")
+			freeCompilerArgs = listOf("-Xcontext-parameters")
 		}
 	}
 	named<Jar>("jar") {

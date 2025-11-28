@@ -1,11 +1,13 @@
 {
   "required": true,
   "package": "io.github.apollointhehouse.mixin",
-  "compatibilityLevel": "JAVA_${java}",
+  "compatibilityLevel": "JAVA_8",
   "injectors": {
     "defaultRequire": 1
   },
   "mixins": [],
   "client": [
+    "MinecraftMixin",
+    "WorldClientMPMixin"
   ]
 }

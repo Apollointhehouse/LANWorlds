@@ -1,52 +1,78 @@
 package io.github.apollointhehouse.server
 
-import io.github.apollointhehouse.LANWorlds
+import io.github.apollointhehouse.LANWorlds.EVENT_BUS
 import io.github.apollointhehouse.LANWorlds.LOGGER
-import io.github.apollointhehouse.server.ServerUtils.downloadFile
-import io.github.apollointhehouse.server.ServerUtils.saveTo
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.Job
-import kotlinx.coroutines.launch
+import io.github.apollointhehouse.events.ConsoleMessage
+import io.github.apollointhehouse.events.StartServer
+import io.github.apollointhehouse.events.StopServer
+import io.github.apollointhehouse.events.TickServer
+import io.github.apollointhehouse.server.Utils.createDirectory
+import io.github.apollointhehouse.server.Utils.createFile
+import io.github.apollointhehouse.server.Utils.downloadFile
+import io.github.apollointhehouse.server.Utils.saveTo
+import me.apollointhehouse.raywire.api.EventHandler
 import net.minecraft.client.Minecraft
+import net.minecraft.client.gui.ScreenConnecting
 import net.minecraft.core.world.World
-import net.minecraft.core.world.save.LevelData
 import java.io.File
+import java.net.URL
+import java.util.*
 
-class Server private constructor(val data: LevelData) {
-	private val mc: Minecraft = Minecraft.getMinecraft()
+class Server(val world: World) {
 	private var process: Process? = null
-    private val scope = CoroutineScope(Dispatchers.IO)
+    private var saveQueued = false
+    private var joinQueued = false
 
-    val name: String = data.worldName
-
-    constructor(world: World) : this(world.levelData) {
-        val player = world.players[0]
-        val serverFolder = ServerUtils.createDirectory("${ServerUtils.SERVERS_PATH}/$name")
+    init {
+        createDirectory(PATH)
         LOGGER.info("Created server folder!")
 
-        ServerUtils.serverJarURL.downloadFile("${serverFolder.path}/server.jar")
+        SERVER_JAR_URL.downloadFile("${PATH}/server.jar")
         LOGGER.info("Downloaded server.jar!")
 
-        val props = ServerUtils.createServerProperties(data, world)
-        LOGGER.info("Created server properties!")
-
-        props.saveTo("${serverFolder.path}/server.properties")
-        LOGGER.info("Saved server properties!")
-
-        data.saveTo(serverFolder.path)
-        LOGGER.info("Saved world!")
-
-        player.saveTo("${serverFolder.path}/$name/players/${player.username}.dat")
-        LOGGER.info("Saved player data!")
-
-        ServerUtils.createFile("${serverFolder.path}/ops.txt").writeText(player.username)
-
-        LOGGER.info("Created server!")
+        saveQueued = true
     }
 
-	fun startServer(): Job {
-		val serverFolder = File("${mc.minecraftDir.path}/servers/$name").apply {
+    context(_: TickServer)
+    @EventHandler
+    fun tick() {
+        when {
+            joinQueued -> {
+                mc.changeWorld(null)
+                mc.displayScreen(null)
+                mc.displayScreen(ScreenConnecting(mc, "localhost", 25565))
+
+                joinQueued = false
+            }
+            saveQueued -> {
+                val data = world.levelData
+
+                val player = world.players[0]
+                val props = createProps()
+                LOGGER.info("Created server properties!")
+
+                props.saveTo("${PATH}/server.properties")
+                LOGGER.info("Saved server properties!")
+
+                data.saveTo(PATH)
+                LOGGER.info("Saved world!")
+
+                player.saveTo("${PATH}/${data.worldName}/players/${player.username}.dat")
+                LOGGER.info("Saved player data!")
+
+                createFile("${PATH}/ops.txt").writeText(player.username)
+
+                LOGGER.info("Created server!")
+
+                saveQueued = false
+            }
+        }
+    }
+
+    context(_: StartServer)
+    @EventHandler
+	fun startServer() {
+		val serverFolder = File(PATH).apply {
 			if (!exists()) {
 				LOGGER.error("Server directory does not exist!")
 				error("Failed to start server!")
@@ -54,7 +80,7 @@ class Server private constructor(val data: LevelData) {
 		}
 
 		process = ProcessBuilder()
-			.command("java", "-jar", "${serverFolder.path}/server.jar")
+			.command("java", "-jar", "${PATH}/server.jar", "nogui")
 			.directory(serverFolder)
 			.start()
 
@@ -62,17 +88,24 @@ class Server private constructor(val data: LevelData) {
 
         LOGGER.info("Started server jar!")
 
-        return scope.launch {
-            while (true) {
-                val line = out.readLine() ?: break
-                println(line)
-                if (line.isEmpty()) break
-                if (line.contains("Done", ignoreCase = true)) break
-            }
+        while (true) {
+            val line = out.readLine() ?: break
+            println(line)
+
+            EVENT_BUS.post(ConsoleMessage(line))
+
+            if (line.isEmpty()) break
+            if (line.contains("Done", ignoreCase = true)) break
         }
+
+        joinQueued = true
+
+        return
 	}
 
-	fun stopServer(): Server {
+    context(_: StopServer)
+    @EventHandler
+	fun stopServer() {
 		val out = process?.outputStream?.bufferedWriter() ?: error("Failed to create buffered writer!")
 		runCatching {
 			out.write("stop\n")
@@ -81,8 +114,43 @@ class Server private constructor(val data: LevelData) {
 			error("Failed to write to process out!")
 		}
 
-		LANWorlds.server = null
+		EVENT_BUS.unsubscribe(this)
 		LOGGER.info("Stopped server!")
-		return this
-	}
+    }
+
+    private fun createProps(): Properties {
+        val data = world.levelData
+        val worldName = data.worldName
+        val gamemode = when (data.gamemode) {
+            0 -> "Survival"
+            1 -> "Creative"
+            2 -> "Adventure"
+            3 -> "Spectator"
+            else -> error("Invalid gamemode!")
+        }
+        val worldType = "minecraft:" + world.worldType.languageKey.substringAfter('.')
+
+        val props = ClassLoader.getSystemResourceAsStream("server.properties")
+            ?.let { Properties().apply { load(it) } }
+            ?: error("Failed to create server properties!")
+
+        props.setProperty("default-gamemode", gamemode)
+        props.setProperty("level-seed", data.randomSeed.toString())
+        props.setProperty("world-type", worldType)
+        props.setProperty("level-name", worldName)
+        props.setProperty("motd", worldName)
+        props.setProperty("difficulty", world.difficulty.toString())
+        props.setProperty("online-mode", "false")
+
+        return props
+    }
+
+    companion object {
+        private val mc: Minecraft = Minecraft.getMinecraft()
+        private val VERSION = mc.minecraftVersion
+        private val SERVER_JAR_URL = URL("https://downloads.betterthanadventure.net/bta-server/release/v${VERSION}/server.jar")
+        private val PATH = "${mc.minecraftDir.path}/lan-server"
+
+        val SAVES_PATH = "${mc.minecraftDir.path}/saves"
+    }
 }
