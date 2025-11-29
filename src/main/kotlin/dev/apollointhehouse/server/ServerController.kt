@@ -1,5 +1,8 @@
 package dev.apollointhehouse.server
 
+import dev.apollointhehouse.Config.SERVER_JAR_URL
+import dev.apollointhehouse.Config.SERVER_PATH
+import dev.apollointhehouse.Config.mc
 import dev.apollointhehouse.LANWorlds.EVENT_BUS
 import dev.apollointhehouse.LANWorlds.LOGGER
 import dev.apollointhehouse.events.ConsoleMessage
@@ -11,37 +14,32 @@ import dev.apollointhehouse.server.actions.MoveC2S
 import dev.apollointhehouse.server.actions.MoveS2C
 import dev.apollointhehouse.server.actions.PlayerJoin
 import me.apollointhehouse.raywire.api.EventHandler
-import net.minecraft.client.Minecraft
-import net.minecraft.core.world.World
 import java.io.File
-import java.net.URL
 import java.util.ArrayDeque
 import java.util.Queue
-import kotlin.io.readBytes
 
 class ServerController(
     val name: String,
-    world: World,
 ) {
-    private var process: Process? = null
     private val queue: Queue<Action> = ArrayDeque()
+    private var process: Process? = null
 
     init {
-        File(PATH).also {
+        File(SERVER_PATH).also {
             if (it.exists()) it.deleteRecursively()
             it.mkdirs()
         }
 
         LOGGER.info("Created server folder!")
 
-        File("$PATH/server.jar").also {
+        File("$SERVER_PATH/server.jar").also {
             if (!it.exists()) it.createNewFile()
             it.writeBytes(SERVER_JAR_URL.readBytes())
         }
 
         LOGGER.info("Downloaded server.jar!")
 
-        queue += MoveC2S(world, PATH)
+        queue += MoveC2S(mc.currentWorld, SERVER_PATH)
     }
 
     @EventHandler
@@ -58,7 +56,7 @@ class ServerController(
     context(_: StartServer)
     fun startServer() {
         val serverFolder =
-            File(PATH).apply {
+            File(SERVER_PATH).apply {
                 if (!exists()) {
                     LOGGER.error("Server directory does not exist!")
                     EVENT_BUS.unsubscribe(this)
@@ -68,7 +66,7 @@ class ServerController(
 
         process =
             ProcessBuilder()
-                .command("java", "-jar", "$PATH/server.jar", "nogui")
+                .command("java", "-jar", "$SERVER_PATH/server.jar", "nogui")
                 .directory(serverFolder)
                 .start()
 
@@ -97,7 +95,7 @@ class ServerController(
         val proc = process ?: return
         val out = proc.outputStream?.bufferedWriter() ?: error("Failed to create buffered writer!")
 
-        queue += MoveS2C(this, mc, name, proc, PATH)
+        queue += MoveS2C(this, name, proc)
 
         runCatching {
             out.write("stop\n")
@@ -107,14 +105,5 @@ class ServerController(
         }
 
         LOGGER.info("Stopped server!")
-    }
-
-    companion object {
-        private val mc: Minecraft = Minecraft.getMinecraft()
-        private val VERSION = mc.minecraftVersion
-        private val SERVER_JAR_URL = URL("https://downloads.betterthanadventure.net/bta-server/release/v$VERSION/server.jar")
-        private val PATH = "${mc.minecraftDir.path}/lan-server"
-
-        val SAVES_PATH = "${mc.minecraftDir.path}/saves"
     }
 }

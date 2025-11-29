@@ -22,12 +22,11 @@ class ScreenCreatingServer(
 ) : Screen() {
     private val scope = CoroutineScope(Dispatchers.IO)
     private val world = mc.currentWorld ?: error("Not in world you dumbass!")
-    private val server by lazy { ServerController(world.levelData.worldName, world) }
 
     private var line = ""
 
     init {
-        EVENT_BUS.subscribe(server)
+        EVENT_BUS.subscribe(ServerController(world.levelData.worldName))
         EVENT_BUS.subscribe(this)
 
         scope.launch {

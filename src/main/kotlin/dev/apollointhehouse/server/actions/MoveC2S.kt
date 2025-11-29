@@ -3,8 +3,8 @@ package dev.apollointhehouse.server.actions
 import com.b100.utils.FileUtils
 import com.mojang.nbt.NbtIo
 import com.mojang.nbt.tags.CompoundTag
+import dev.apollointhehouse.Config.MC_SAVES_PATH
 import dev.apollointhehouse.LANWorlds.LOGGER
-import dev.apollointhehouse.server.ServerController
 import net.minecraft.core.entity.player.Player
 import net.minecraft.core.world.World
 import net.minecraft.core.world.save.LevelData
@@ -82,7 +82,7 @@ class MoveC2S(
     }
 
     private fun LevelData.saveTo(path: String): File {
-        val from = File("${ServerController.SAVES_PATH}/$worldName")
+        val from = File("${MC_SAVES_PATH}/$worldName")
         val to =
             File("$path/$worldName").also {
                 if (it.exists()) it.deleteRecursively()
@@ -104,7 +104,9 @@ class MoveC2S(
         runCatching {
             saveWithoutId(playerData)
             to.parentFile.mkdirs()
-            if (!to.exists()) to.createNewFile()
+            if (to.exists()) to.delete()
+            to.createNewFile()
+
             NbtIo.writeCompressed(playerData, to.outputStream())
         }.onFailure {
             error("Failed to save player data to: $path")
