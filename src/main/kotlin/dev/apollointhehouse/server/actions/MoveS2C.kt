@@ -16,15 +16,15 @@ class MoveS2C(
     private val mc: Minecraft,
     private val worldName: String,
     private val proc: Process,
-    private val serverPath: String
+    private val serverPath: String,
 ) : Action {
     override fun run() {
         EVENT_BUS.subscribe(this)
         mc.displayScreen(ScreenSavingServer())
     }
 
-    context(_: TickServer)
     @EventHandler
+    context(_: TickServer)
     fun tick() {
         if (proc.isAlive) return
 
@@ -39,16 +39,17 @@ class MoveS2C(
     }
 
     private fun moveWorld(): File {
-        val from = File("${serverPath}/${worldName}")
-        val to = File("${ServerController.SAVES_PATH}/${worldName}").also {
-            if (it.exists()) it.deleteRecursively()
-            it.mkdirs()
-        }
+        val from = File("$serverPath/$worldName")
+        val to =
+            File("${ServerController.SAVES_PATH}/$worldName").also {
+                if (it.exists()) it.deleteRecursively()
+                it.mkdirs()
+            }
 
         runCatching {
             FileUtils.copyAll(from, to)
         }.onFailure {
-            error("Failed to save world to: ${ServerController.SAVES_PATH}/${worldName}")
+            error("Failed to save world to: ${ServerController.SAVES_PATH}/$worldName")
         }
 
         return to

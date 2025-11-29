@@ -10,7 +10,13 @@ import net.minecraft.core.lang.I18n
 class ScreenSavingServer : Screen() {
     override fun tick() {
     }
-    override fun keyPressed(eventCharacter: Char, eventKey: Int, mx: Int, my: Int) {}
+
+    override fun keyPressed(
+        eventCharacter: Char,
+        eventKey: Int,
+        mx: Int,
+        my: Int,
+    ) {}
 
     override fun init() {
         buttons.clear()
@@ -18,7 +24,11 @@ class ScreenSavingServer : Screen() {
 
     override fun buttonClicked(button: ButtonElement) {}
 
-    override fun render(mx: Int, my: Int, partialTick: Float) {
+    override fun render(
+        mx: Int,
+        my: Int,
+        partialTick: Float,
+    ) {
         this.renderBackground()
         val trans = I18n.getInstance()
 

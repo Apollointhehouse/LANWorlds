@@ -9,11 +9,11 @@ import net.minecraft.core.entity.player.Player
 import net.minecraft.core.world.World
 import net.minecraft.core.world.save.LevelData
 import java.io.File
-import java.util.*
+import java.util.Properties
 
 class MoveC2S(
     private val world: World,
-    private val path: String
+    private val path: String,
 ) : Action {
     override fun run() {
         val data = world.levelData
@@ -21,16 +21,16 @@ class MoveC2S(
         val props = createProps()
         LOGGER.info("Created server properties!")
 
-        props.saveTo("${path}/server.properties")
+        props.saveTo("$path/server.properties")
         LOGGER.info("Saved server properties!")
 
         data.saveTo(path)
         LOGGER.info("Saved world!")
 
-        player.saveTo("${path}/${data.worldName}/players/${player.username}.dat")
+        player.saveTo("$path/${data.worldName}/players/${player.username}.dat")
         LOGGER.info("Saved player data!")
 
-        File("${path}/ops.txt").also {
+        File("$path/ops.txt").also {
             if (!it.exists()) it.createNewFile()
             it.writeText(player.username)
         }
@@ -41,18 +41,21 @@ class MoveC2S(
     private fun createProps(): Properties {
         val data = world.levelData
         val worldName = data.worldName
-        val gamemode = when (data.gamemode) {
-            0 -> "Survival"
-            1 -> "Creative"
-            2 -> "Adventure"
-            3 -> "Spectator"
-            else -> error("Invalid gamemode!")
-        }
+        val gamemode =
+            when (data.gamemode) {
+                0 -> "Survival"
+                1 -> "Creative"
+                2 -> "Adventure"
+                3 -> "Spectator"
+                else -> error("Invalid gamemode!")
+            }
         val worldType = "minecraft:" + world.worldType.languageKey.substringAfter('.')
 
-        val props = ClassLoader.getSystemResourceAsStream("server.properties")
-            ?.let { Properties().apply { load(it) } }
-            ?: error("Failed to create server properties!")
+        val props =
+            ClassLoader
+                .getSystemResourceAsStream("server.properties")
+                ?.let { Properties().apply { load(it) } }
+                ?: error("Failed to create server properties!")
 
         with(props) {
             setProperty("default-gamemode", gamemode)
@@ -79,11 +82,12 @@ class MoveC2S(
     }
 
     private fun LevelData.saveTo(path: String): File {
-        val from = File("${ServerController.SAVES_PATH}/${worldName}")
-        val to = File("$path/$worldName").also {
-            if (it.exists()) it.deleteRecursively()
-            it.mkdirs()
-        }
+        val from = File("${ServerController.SAVES_PATH}/$worldName")
+        val to =
+            File("$path/$worldName").also {
+                if (it.exists()) it.deleteRecursively()
+                it.mkdirs()
+            }
 
         runCatching {
             FileUtils.copyAll(from, to)

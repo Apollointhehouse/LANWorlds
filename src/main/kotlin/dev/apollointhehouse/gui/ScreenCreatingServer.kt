@@ -17,7 +17,9 @@ import net.minecraft.client.gui.Screen
 import net.minecraft.core.lang.I18n
 
 @Environment(EnvType.CLIENT)
-class ScreenCreatingServer(mc: Minecraft) : Screen() {
+class ScreenCreatingServer(
+    mc: Minecraft,
+) : Screen() {
     private val scope = CoroutineScope(Dispatchers.IO)
     private val world = mc.currentWorld ?: error("Not in world you dumbass!")
     private val server by lazy { ServerController(world.levelData.worldName, world) }
@@ -46,7 +48,12 @@ class ScreenCreatingServer(mc: Minecraft) : Screen() {
 
     override fun tick() {}
 
-    override fun keyPressed(eventCharacter: Char, eventKey: Int, mx: Int, my: Int) {}
+    override fun keyPressed(
+        eventCharacter: Char,
+        eventKey: Int,
+        mx: Int,
+        my: Int,
+    ) {}
 
     override fun init() {
         buttons.clear()
@@ -54,7 +61,11 @@ class ScreenCreatingServer(mc: Minecraft) : Screen() {
 
     override fun buttonClicked(button: ButtonElement) {}
 
-    override fun render(mx: Int, my: Int, partialTick: Float) {
+    override fun render(
+        mx: Int,
+        my: Int,
+        partialTick: Float,
+    ) {
         this.renderBackground()
         val trans = I18n.getInstance()
 

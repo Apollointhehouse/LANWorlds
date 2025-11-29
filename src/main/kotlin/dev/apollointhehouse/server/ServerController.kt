@@ -15,11 +15,15 @@ import net.minecraft.client.Minecraft
 import net.minecraft.core.world.World
 import java.io.File
 import java.net.URL
-import java.util.*
+import java.util.ArrayDeque
+import java.util.Queue
 import kotlin.io.readBytes
 
-class ServerController(val name: String, world: World) {
-	private var process: Process? = null
+class ServerController(
+    val name: String,
+    world: World,
+) {
+    private var process: Process? = null
     private val queue: Queue<Action> = ArrayDeque()
 
     init {
@@ -30,7 +34,7 @@ class ServerController(val name: String, world: World) {
 
         LOGGER.info("Created server folder!")
 
-        File("${PATH}/server.jar").also {
+        File("$PATH/server.jar").also {
             if (!it.exists()) it.createNewFile()
             it.writeBytes(SERVER_JAR_URL.readBytes())
         }
@@ -40,8 +44,8 @@ class ServerController(val name: String, world: World) {
         queue += MoveC2S(world, PATH)
     }
 
-    context(_: TickServer)
     @EventHandler
+    context(_: TickServer)
     fun tick() {
         if (queue.isEmpty()) return
 
@@ -50,23 +54,25 @@ class ServerController(val name: String, world: World) {
         action.run()
     }
 
-    context(_: StartServer)
     @EventHandler
-	fun startServer() {
-		val serverFolder = File(PATH).apply {
-			if (!exists()) {
-				LOGGER.error("Server directory does not exist!")
-                EVENT_BUS.unsubscribe(this)
-                error("Failed to start server!")
+    context(_: StartServer)
+    fun startServer() {
+        val serverFolder =
+            File(PATH).apply {
+                if (!exists()) {
+                    LOGGER.error("Server directory does not exist!")
+                    EVENT_BUS.unsubscribe(this)
+                    error("Failed to start server!")
+                }
             }
-		}
 
-		process = ProcessBuilder()
-			.command("java", "-jar", "${PATH}/server.jar", "nogui")
-			.directory(serverFolder)
-			.start()
+        process =
+            ProcessBuilder()
+                .command("java", "-jar", "$PATH/server.jar", "nogui")
+                .directory(serverFolder)
+                .start()
 
-		val out = process?.inputStream?.bufferedReader() ?: error("Failed to create buffered reader!")
+        val out = process?.inputStream?.bufferedReader() ?: error("Failed to create buffered reader!")
 
         LOGGER.info("Started server jar!")
 
@@ -83,31 +89,30 @@ class ServerController(val name: String, world: World) {
         queue += PlayerJoin(mc)
 
         return
-	}
+    }
 
-    context(_: StopServer)
     @EventHandler
-	fun stopServer() {
+    context(_: StopServer)
+    fun stopServer() {
         val proc = process ?: return
         val out = proc.outputStream?.bufferedWriter() ?: error("Failed to create buffered writer!")
 
         queue += MoveS2C(this, mc, name, proc, PATH)
 
         runCatching {
-			out.write("stop\n")
-			out.flush()
-		}.onFailure {
+            out.write("stop\n")
+            out.flush()
+        }.onFailure {
             error("Failed to write to process out!")
         }
 
-
-		LOGGER.info("Stopped server!")
+        LOGGER.info("Stopped server!")
     }
 
     companion object {
         private val mc: Minecraft = Minecraft.getMinecraft()
         private val VERSION = mc.minecraftVersion
-        private val SERVER_JAR_URL = URL("https://downloads.betterthanadventure.net/bta-server/release/v${VERSION}/server.jar")
+        private val SERVER_JAR_URL = URL("https://downloads.betterthanadventure.net/bta-server/release/v$VERSION/server.jar")
         private val PATH = "${mc.minecraftDir.path}/lan-server"
 
         val SAVES_PATH = "${mc.minecraftDir.path}/saves"
