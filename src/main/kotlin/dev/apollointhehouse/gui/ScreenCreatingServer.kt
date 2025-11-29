@@ -1,10 +1,10 @@
-package io.github.apollointhehouse.gui
+package dev.apollointhehouse.gui
 
-import io.github.apollointhehouse.LANWorlds.EVENT_BUS
-import io.github.apollointhehouse.LANWorlds.LOGGER
-import io.github.apollointhehouse.events.ConsoleMessage
-import io.github.apollointhehouse.events.StartServer
-import io.github.apollointhehouse.server.Server
+import dev.apollointhehouse.LANWorlds.EVENT_BUS
+import dev.apollointhehouse.LANWorlds.LOGGER
+import dev.apollointhehouse.events.ConsoleMessage
+import dev.apollointhehouse.events.StartServer
+import dev.apollointhehouse.server.Server
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch

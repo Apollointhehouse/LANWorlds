@@ -20,19 +20,19 @@
 		"main": [
 			{
 				"adapter": "kotlin",
-				"value": "io.github.apollointhehouse.LANWorlds"
+				"value": "dev.apollointhehouse.LANWorlds"
 			}
 		],
 		"beforeGameStart": [
 			{
 				"adapter": "kotlin",
-				"value": "io.github.apollointhehouse.LANWorlds"
+				"value": "dev.apollointhehouse.LANWorlds"
 			}
 		],
 		"afterGameStart": [
 			{
 				"adapter": "kotlin",
-				"value": "io.github.apollointhehouse.LANWorlds"
+				"value": "dev.apollointhehouse.LANWorlds"
 			}
 		]
 	},

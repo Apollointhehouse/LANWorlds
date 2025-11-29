@@ -1,4 +1,4 @@
-package io.github.apollointhehouse.events
+package dev.apollointhehouse.events
 
 import me.apollointhehouse.raywire.api.Event
 

@@ -1,6 +1,6 @@
-package io.github.apollointhehouse
+package dev.apollointhehouse
 
-import io.github.apollointhehouse.gui.ScreenCreatingServer
+import dev.apollointhehouse.gui.ScreenCreatingServer
 import me.apollointhehouse.raywire.api.Bus
 import net.fabricmc.api.ModInitializer
 import net.minecraft.client.Minecraft
@@ -14,9 +14,7 @@ object LANWorlds: ModInitializer, GameStartEntrypoint {
     const val MOD_ID: String = "lanworlds"
     @JvmField val EVENT_BUS = Bus()
 
-    @JvmField
     val LOGGER: Logger = LoggerFactory.getLogger(MOD_ID)
-
 
     override fun onInitialize() {
         LOGGER.info("LANWorlds Initialised!")

@@ -1,6 +1,6 @@
 {
   "required": true,
-  "package": "io.github.apollointhehouse.mixin",
+  "package": "dev.apollointhehouse.mixin",
   "compatibilityLevel": "JAVA_8",
   "injectors": {
     "defaultRequire": 1
