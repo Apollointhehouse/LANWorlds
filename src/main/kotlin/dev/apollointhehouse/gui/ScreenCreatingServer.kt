@@ -4,7 +4,7 @@ import dev.apollointhehouse.LANWorlds.EVENT_BUS
 import dev.apollointhehouse.LANWorlds.LOGGER
 import dev.apollointhehouse.events.ConsoleMessage
 import dev.apollointhehouse.events.StartServer
-import dev.apollointhehouse.server.Server
+import dev.apollointhehouse.server.ServerController
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -20,16 +20,16 @@ import net.minecraft.core.lang.I18n
 class ScreenCreatingServer(mc: Minecraft) : Screen() {
     private val scope = CoroutineScope(Dispatchers.IO)
     private val world = mc.currentWorld ?: error("Not in world you dumbass!")
-    private val server by lazy { Server(world) }
+    private val server by lazy { ServerController(world.levelData.worldName, world) }
 
     private var line = ""
 
     init {
+        EVENT_BUS.subscribe(server)
         EVENT_BUS.subscribe(this)
 
         scope.launch {
             try {
-                EVENT_BUS.subscribe(server)
                 EVENT_BUS.post(StartServer)
             } catch (e: Throwable) {
                 LOGGER.error(e.stackTrace.toString())
@@ -44,18 +44,15 @@ class ScreenCreatingServer(mc: Minecraft) : Screen() {
         if (line.isEmpty() || line.contains("Done", ignoreCase = true)) EVENT_BUS.unsubscribe(this)
     }
 
-    override fun tick() {
-    }
+    override fun tick() {}
 
-    override fun keyPressed(eventCharacter: Char, eventKey: Int, mx: Int, my: Int) {
-    }
+    override fun keyPressed(eventCharacter: Char, eventKey: Int, mx: Int, my: Int) {}
 
     override fun init() {
         buttons.clear()
     }
 
-    override fun buttonClicked(button: ButtonElement) {
-    }
+    override fun buttonClicked(button: ButtonElement) {}
 
     override fun render(mx: Int, my: Int, partialTick: Float) {
         this.renderBackground()

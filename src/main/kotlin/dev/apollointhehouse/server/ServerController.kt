@@ -6,7 +6,6 @@ import dev.apollointhehouse.events.ConsoleMessage
 import dev.apollointhehouse.events.StartServer
 import dev.apollointhehouse.events.StopServer
 import dev.apollointhehouse.events.TickServer
-import dev.apollointhehouse.server.Utils.downloadFile
 import dev.apollointhehouse.server.actions.Action
 import dev.apollointhehouse.server.actions.MoveC2S
 import dev.apollointhehouse.server.actions.MoveS2C
@@ -17,16 +16,25 @@ import net.minecraft.core.world.World
 import java.io.File
 import java.net.URL
 import java.util.*
+import kotlin.io.readBytes
 
-class Server(world: World) {
+class ServerController(val name: String, world: World) {
 	private var process: Process? = null
     private val queue: Queue<Action> = ArrayDeque()
 
     init {
-        Utils.createDirectory(PATH)
+        File(PATH).also {
+            if (it.exists()) it.deleteRecursively()
+            it.mkdirs()
+        }
+
         LOGGER.info("Created server folder!")
 
-        SERVER_JAR_URL.downloadFile("${PATH}/server.jar")
+        File("${PATH}/server.jar").also {
+            if (!it.exists()) it.createNewFile()
+            it.writeBytes(SERVER_JAR_URL.readBytes())
+        }
+
         LOGGER.info("Downloaded server.jar!")
 
         queue += MoveC2S(world, PATH)
@@ -81,21 +89,20 @@ class Server(world: World) {
     @EventHandler
 	fun stopServer() {
         val proc = process ?: return
-		val out = proc.outputStream?.bufferedWriter() ?: error("Failed to create buffered writer!")
-		runCatching {
+        val out = proc.outputStream?.bufferedWriter() ?: error("Failed to create buffered writer!")
+
+        queue += MoveS2C(this, mc, name, proc, PATH)
+
+        runCatching {
 			out.write("stop\n")
 			out.flush()
 		}.onFailure {
-			error("Failed to write to process out!")
-		}
+            error("Failed to write to process out!")
+        }
 
-        queue += MoveS2C(proc)
 
-		EVENT_BUS.unsubscribe(this)
 		LOGGER.info("Stopped server!")
     }
-
-
 
     companion object {
         private val mc: Minecraft = Minecraft.getMinecraft()

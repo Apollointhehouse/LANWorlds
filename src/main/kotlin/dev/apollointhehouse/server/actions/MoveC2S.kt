@@ -4,19 +4,19 @@ import com.b100.utils.FileUtils
 import com.mojang.nbt.NbtIo
 import com.mojang.nbt.tags.CompoundTag
 import dev.apollointhehouse.LANWorlds.LOGGER
-import dev.apollointhehouse.server.Server
-import dev.apollointhehouse.server.Utils
-import dev.apollointhehouse.server.Utils.createDirectory
+import dev.apollointhehouse.server.ServerController
 import net.minecraft.core.entity.player.Player
 import net.minecraft.core.world.World
 import net.minecraft.core.world.save.LevelData
 import java.io.File
 import java.util.*
 
-class MoveC2S(val world: World, val path: String) : Action {
+class MoveC2S(
+    private val world: World,
+    private val path: String
+) : Action {
     override fun run() {
         val data = world.levelData
-
         val player = world.players[0]
         val props = createProps()
         LOGGER.info("Created server properties!")
@@ -30,7 +30,10 @@ class MoveC2S(val world: World, val path: String) : Action {
         player.saveTo("${path}/${data.worldName}/players/${player.username}.dat")
         LOGGER.info("Saved player data!")
 
-        Utils.createFile("${path}/ops.txt").writeText(player.username)
+        File("${path}/ops.txt").also {
+            if (!it.exists()) it.createNewFile()
+            it.writeText(player.username)
+        }
 
         LOGGER.info("Created server!")
     }
@@ -51,13 +54,15 @@ class MoveC2S(val world: World, val path: String) : Action {
             ?.let { Properties().apply { load(it) } }
             ?: error("Failed to create server properties!")
 
-        props.setProperty("default-gamemode", gamemode)
-        props.setProperty("level-seed", data.randomSeed.toString())
-        props.setProperty("world-type", worldType)
-        props.setProperty("level-name", worldName)
-        props.setProperty("motd", worldName)
-        props.setProperty("difficulty", world.difficulty.toString())
-        props.setProperty("online-mode", "false")
+        with(props) {
+            setProperty("default-gamemode", gamemode)
+            setProperty("level-seed", data.randomSeed.toString())
+            setProperty("world-type", worldType)
+            setProperty("level-name", worldName)
+            setProperty("motd", worldName)
+            setProperty("difficulty", world.difficulty.toString())
+            setProperty("online-mode", "false")
+        }
 
         return props
     }
@@ -74,8 +79,11 @@ class MoveC2S(val world: World, val path: String) : Action {
     }
 
     private fun LevelData.saveTo(path: String): File {
-        val from = File("${Server.SAVES_PATH}/${worldName}")
-        val to = createDirectory("$path/$worldName")
+        val from = File("${ServerController.SAVES_PATH}/${worldName}")
+        val to = File("$path/$worldName").also {
+            if (it.exists()) it.deleteRecursively()
+            it.mkdirs()
+        }
 
         runCatching {
             FileUtils.copyAll(from, to)
