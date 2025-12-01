@@ -10,14 +10,10 @@ import dev.apollointhehouse.events.ConsoleMessage
 import dev.apollointhehouse.events.StartServer
 import dev.apollointhehouse.events.StopServer
 import dev.apollointhehouse.events.TickServer
-import dev.apollointhehouse.gui.ScreenSavingServer
 import dev.apollointhehouse.server.actions.Action
 import dev.apollointhehouse.server.actions.MoveC2S
 import dev.apollointhehouse.server.actions.MoveS2C
 import dev.apollointhehouse.server.actions.PlayerJoin
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
 import me.apollointhehouse.raywire.api.EventHandler
 import java.io.File
 import java.util.ArrayDeque
@@ -26,14 +22,13 @@ import java.util.Queue
 class ServerController(
     val name: String,
 ) {
-    private val scope = CoroutineScope(Dispatchers.IO)
-    private val queue: Queue<Action> = ArrayDeque()
     private var process: Process? = null
+    private val queue: Queue<Action> = ArrayDeque()
 
     init {
         mc.currentWorld.saveWorldIndirectly(
             SaveProgess {
-                queue += MoveC2S(mc.currentWorld)
+                MoveC2S(mc.currentWorld).run()
             },
         )
     }
@@ -43,11 +38,7 @@ class ServerController(
     fun tick() {
         if (queue.isEmpty()) return
 
-        val action = queue.remove()
-
-        scope.launch {
-            action.run()
-        }
+        queue.remove().run()
     }
 
     @EventHandler
@@ -93,7 +84,6 @@ class ServerController(
         val proc = process ?: return
         val out = proc.outputStream?.bufferedWriter() ?: error("Failed to create buffered writer!")
 
-        mc.displayScreen(ScreenSavingServer())
         queue += MoveS2C(this, name, proc, mc.thePlayer.uuid)
 
         runCatching {

@@ -1,5 +1,6 @@
 package dev.apollointhehouse.gui
 
+import dev.apollointhehouse.Config
 import dev.apollointhehouse.LANWorlds.EVENT_BUS
 import dev.apollointhehouse.events.ConsoleMessage
 import dev.apollointhehouse.server.ServerController
@@ -12,7 +13,7 @@ import net.minecraft.core.lang.I18n
 
 @Environment(EnvType.CLIENT)
 class ScreenCreatingServer : Screen() {
-    private val world = mc.currentWorld ?: error("Not in world you dumbass!")
+    private val world = Config.mc.currentWorld ?: error("Not in world you dumbass!")
     private var line = ""
 
     init {

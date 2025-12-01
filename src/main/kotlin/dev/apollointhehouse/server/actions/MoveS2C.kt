@@ -8,6 +8,7 @@ import dev.apollointhehouse.Config.mc
 import dev.apollointhehouse.LANWorlds.EVENT_BUS
 import dev.apollointhehouse.LANWorlds.LOGGER
 import dev.apollointhehouse.events.TickServer
+import dev.apollointhehouse.gui.ScreenSavingServer
 import dev.apollointhehouse.server.ServerController
 import me.apollointhehouse.raywire.api.EventHandler
 import net.minecraft.client.gui.ScreenMainMenu
@@ -21,6 +22,7 @@ class MoveS2C(
     private val uuid: UUID,
 ) : Action {
     override fun run() {
+        mc.displayScreen(ScreenSavingServer())
         EVENT_BUS.subscribe(this)
     }
 
