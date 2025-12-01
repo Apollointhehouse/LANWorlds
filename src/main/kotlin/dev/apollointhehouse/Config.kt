@@ -9,5 +9,5 @@ object Config {
     val SERVER_JAR_URL = URL("https://downloads.betterthanadventure.net/bta-server/release/v$MC_VERSION/server.jar")
     val SERVER_PATH = "${mc.minecraftDir.path}/lan-server"
     val MC_SAVES_PATH = "${mc.minecraftDir.path}/saves"
-    val NO_GUI = false
+    val NO_GUI = true
 }
