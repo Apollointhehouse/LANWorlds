@@ -1,6 +1,7 @@
 package dev.apollointhehouse
 
 import net.minecraft.client.Minecraft
+import java.io.InputStream
 import java.net.URL
 
 object Config {
@@ -10,4 +11,5 @@ object Config {
     val SERVER_PATH = "${mc.minecraftDir.path}/lan-server"
     val MC_SAVES_PATH = "${mc.minecraftDir.path}/saves"
     val NO_GUI = true
+    val SERVER_PROPS: InputStream? = LANWorlds::class.java.getResourceAsStream("/server.properties")
 }

@@ -3,6 +3,7 @@ package dev.apollointhehouse.server.actions
 import com.b100.utils.FileUtils
 import com.mojang.nbt.NbtIo
 import com.mojang.nbt.tags.CompoundTag
+import dev.apollointhehouse.Config
 import dev.apollointhehouse.Config.MC_SAVES_PATH
 import dev.apollointhehouse.Config.SERVER_JAR_URL
 import dev.apollointhehouse.Config.SERVER_PATH
@@ -72,10 +73,9 @@ class MoveC2S(
         val worldType = "minecraft:" + world.worldType.languageKey.substringAfter('.')
 
         val props =
-            ClassLoader
-                .getSystemResourceAsStream("server.properties")
+            Config.SERVER_PROPS
                 ?.let { Properties().apply { load(it) } }
-                ?: error("Failed to create server properties!")
+                ?: error("Failed to create server properties: ${Config.SERVER_PROPS}")
 
         props["default-gamemode"] = gamemode
         props["level-seed"] = data.randomSeed.toString()
