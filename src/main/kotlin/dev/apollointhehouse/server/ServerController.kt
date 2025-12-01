@@ -1,18 +1,23 @@
 package dev.apollointhehouse.server
 
-import dev.apollointhehouse.Config.SERVER_JAR_URL
+import dev.apollointhehouse.Config.NO_GUI
 import dev.apollointhehouse.Config.SERVER_PATH
 import dev.apollointhehouse.Config.mc
 import dev.apollointhehouse.LANWorlds.EVENT_BUS
 import dev.apollointhehouse.LANWorlds.LOGGER
+import dev.apollointhehouse.SaveProgess
 import dev.apollointhehouse.events.ConsoleMessage
 import dev.apollointhehouse.events.StartServer
 import dev.apollointhehouse.events.StopServer
 import dev.apollointhehouse.events.TickServer
+import dev.apollointhehouse.gui.ScreenSavingServer
 import dev.apollointhehouse.server.actions.Action
 import dev.apollointhehouse.server.actions.MoveC2S
 import dev.apollointhehouse.server.actions.MoveS2C
 import dev.apollointhehouse.server.actions.PlayerJoin
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import me.apollointhehouse.raywire.api.EventHandler
 import java.io.File
 import java.util.ArrayDeque
@@ -21,25 +26,16 @@ import java.util.Queue
 class ServerController(
     val name: String,
 ) {
+    private val scope = CoroutineScope(Dispatchers.IO)
     private val queue: Queue<Action> = ArrayDeque()
     private var process: Process? = null
 
     init {
-        File(SERVER_PATH).also {
-            if (it.exists()) it.deleteRecursively()
-            it.mkdirs()
-        }
-
-        LOGGER.info("Created server folder!")
-
-        File("$SERVER_PATH/server.jar").also {
-            if (!it.exists()) it.createNewFile()
-            it.writeBytes(SERVER_JAR_URL.readBytes())
-        }
-
-        LOGGER.info("Downloaded server.jar!")
-
-        queue += MoveC2S(mc.currentWorld, SERVER_PATH)
+        mc.currentWorld.saveWorldIndirectly(
+            SaveProgess {
+                queue += MoveC2S(mc.currentWorld)
+            },
+        )
     }
 
     @EventHandler
@@ -49,7 +45,9 @@ class ServerController(
 
         val action = queue.remove()
 
-        action.run()
+        scope.launch {
+            action.run()
+        }
     }
 
     @EventHandler
@@ -66,7 +64,7 @@ class ServerController(
 
         process =
             ProcessBuilder()
-                .command("java", "-jar", "$SERVER_PATH/server.jar", "nogui")
+                .command("java", "-jar", "$SERVER_PATH/server.jar", if (NO_GUI) "nogui" else "")
                 .directory(serverFolder)
                 .start()
 
@@ -95,7 +93,8 @@ class ServerController(
         val proc = process ?: return
         val out = proc.outputStream?.bufferedWriter() ?: error("Failed to create buffered writer!")
 
-        queue += MoveS2C(this, name, proc)
+        mc.displayScreen(ScreenSavingServer())
+        queue += MoveS2C(this, name, proc, mc.thePlayer.uuid)
 
         runCatching {
             out.write("stop\n")

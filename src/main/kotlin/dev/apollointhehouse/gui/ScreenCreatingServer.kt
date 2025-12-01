@@ -1,41 +1,23 @@
 package dev.apollointhehouse.gui
 
 import dev.apollointhehouse.LANWorlds.EVENT_BUS
-import dev.apollointhehouse.LANWorlds.LOGGER
 import dev.apollointhehouse.events.ConsoleMessage
-import dev.apollointhehouse.events.StartServer
 import dev.apollointhehouse.server.ServerController
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
 import me.apollointhehouse.raywire.api.EventHandler
 import net.fabricmc.api.EnvType
 import net.fabricmc.api.Environment
-import net.minecraft.client.Minecraft
 import net.minecraft.client.gui.ButtonElement
 import net.minecraft.client.gui.Screen
 import net.minecraft.core.lang.I18n
 
 @Environment(EnvType.CLIENT)
-class ScreenCreatingServer(
-    mc: Minecraft,
-) : Screen() {
-    private val scope = CoroutineScope(Dispatchers.IO)
+class ScreenCreatingServer : Screen() {
     private val world = mc.currentWorld ?: error("Not in world you dumbass!")
-
     private var line = ""
 
     init {
         EVENT_BUS.subscribe(ServerController(world.levelData.worldName))
         EVENT_BUS.subscribe(this)
-
-        scope.launch {
-            try {
-                EVENT_BUS.post(StartServer)
-            } catch (e: Throwable) {
-                LOGGER.error(e.stackTrace.toString())
-            }
-        }
     }
 
     @EventHandler
