@@ -1,12 +1,13 @@
 package dev.apollointhehouse
 
+import dev.apollointhehouse.server.actions.Action
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import net.minecraft.core.world.ProgressListener
 
 class SaveProgess(
-    val onFinish: suspend () -> Unit,
+    val onFinish: Action,
 ) : ProgressListener {
     private val scope = CoroutineScope(Dispatchers.IO)
 
@@ -14,7 +15,7 @@ class SaveProgess(
 
     override fun progressStop() {
         scope.launch {
-            onFinish()
+            onFinish.run()
         }
     }
 

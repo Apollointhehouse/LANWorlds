@@ -27,9 +27,7 @@ class ServerController(
 
     init {
         mc.currentWorld.saveWorldIndirectly(
-            SaveProgess {
-                MoveC2S(mc.currentWorld).run()
-            },
+            SaveProgess(onFinish = MoveC2S(mc.currentWorld)),
         )
     }
 
