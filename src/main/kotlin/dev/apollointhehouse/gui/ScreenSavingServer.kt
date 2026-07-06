@@ -32,7 +32,7 @@ class ScreenSavingServer : Screen() {
         this.renderBackground()
         val trans = I18n.getInstance()
 
-        drawStringCentered(font, trans.translateKey("lanworlds.saving"), width / 2, height / 2 - 50, 16777215)
+        drawStringCenteredNoShadow(fontRenderer, trans.translateKey("lanworlds.saving"), width / 2, height / 2 - 50, 16777215)
 //        drawStringCentered(font, line, width / 2, height / 2 - 10, 16777215)
 
         super.render(mx, my, partialTick)

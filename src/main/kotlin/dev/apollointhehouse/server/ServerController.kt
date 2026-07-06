@@ -1,5 +1,6 @@
 package dev.apollointhehouse.server
 
+import com.smushytaco.event_library.api.EventHandler
 import dev.apollointhehouse.Config.NO_GUI
 import dev.apollointhehouse.Config.SERVER_PATH
 import dev.apollointhehouse.Config.mc
@@ -14,7 +15,6 @@ import dev.apollointhehouse.server.actions.Action
 import dev.apollointhehouse.server.actions.MoveC2S
 import dev.apollointhehouse.server.actions.MoveS2C
 import dev.apollointhehouse.server.actions.PlayerJoin
-import me.apollointhehouse.raywire.api.EventHandler
 import java.io.File
 import java.util.ArrayDeque
 import java.util.Queue
@@ -26,22 +26,20 @@ class ServerController(
     private val queue: Queue<Action> = ArrayDeque()
 
     init {
-        mc.currentWorld.saveWorldIndirectly(
-            SaveProgess(onFinish = MoveC2S(mc.currentWorld)),
+        mc.currentWorld?.saveWorldIndirectly(
+            SaveProgess(onFinish = MoveC2S(mc.currentWorld!!)),
         )
     }
 
     @EventHandler
-    context(_: TickServer)
-    fun tick() {
+    fun tick(event: TickServer) {
         if (queue.isEmpty()) return
 
         queue.remove().run()
     }
 
     @EventHandler
-    context(_: StartServer)
-    fun startServer() {
+    fun startServer(event: StartServer) {
         val serverFolder =
             File(SERVER_PATH).apply {
                 if (!exists()) {
@@ -77,8 +75,7 @@ class ServerController(
     }
 
     @EventHandler
-    context(_: StopServer)
-    fun stopServer() {
+    fun stopServer(event: StopServer) {
         val proc = process ?: return
         val out = proc.outputStream?.bufferedWriter() ?: error("Failed to create buffered writer!")
 

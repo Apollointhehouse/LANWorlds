@@ -1,10 +1,8 @@
 package dev.apollointhehouse.gui
 
-import dev.apollointhehouse.Config
+import com.smushytaco.event_library.api.EventHandler
 import dev.apollointhehouse.LANWorlds.EVENT_BUS
 import dev.apollointhehouse.events.ConsoleMessage
-import dev.apollointhehouse.server.ServerController
-import me.apollointhehouse.raywire.api.EventHandler
 import net.fabricmc.api.EnvType
 import net.fabricmc.api.Environment
 import net.minecraft.client.gui.ButtonElement
@@ -13,11 +11,9 @@ import net.minecraft.core.lang.I18n
 
 @Environment(EnvType.CLIENT)
 class ScreenCreatingServer : Screen() {
-    private val world = Config.mc.currentWorld ?: error("Not in world you dumbass!")
     private var line = ""
 
     init {
-        EVENT_BUS.subscribe(ServerController(world.levelData.worldName))
         EVENT_BUS.subscribe(this)
     }
 
@@ -51,8 +47,8 @@ class ScreenCreatingServer : Screen() {
         this.renderBackground()
         val trans = I18n.getInstance()
 
-        drawStringCentered(font, trans.translateKey("lanworlds.creating"), width / 2, height / 2 - 50, 16777215)
-        drawStringCentered(font, line, width / 2, height / 2 - 10, 16777215)
+        drawStringCenteredNoShadow(fontRenderer, trans.translateKey("lanworlds.creating"), width / 2, height / 2 - 50, 16777215)
+        drawStringCenteredNoShadow(fontRenderer, line, width / 2, height / 2 - 10, 16777215)
 
         super.render(mx, my, partialTick)
     }

@@ -1,8 +1,9 @@
 package dev.apollointhehouse
 
+import com.smushytaco.event_library.api.Bus
 import dev.apollointhehouse.gui.ScreenCreatingServer
 import dev.apollointhehouse.logging.withEvent
-import me.apollointhehouse.raywire.api.Bus
+import dev.apollointhehouse.server.ServerController
 import net.fabricmc.api.ModInitializer
 import net.minecraft.client.Minecraft
 import net.minecraft.client.gui.options.components.ShortcutComponent
@@ -15,6 +16,7 @@ object LANWorlds : ModInitializer, GameStartEntrypoint {
     const val MOD_ID: String = "lanworlds"
 
     @JvmField val EVENT_BUS = Bus()
+    private lateinit var controller: ServerController
     val LOGGER: Logger =
         LoggerFactory
             .getLogger(MOD_ID)
@@ -32,6 +34,8 @@ object LANWorlds : ModInitializer, GameStartEntrypoint {
         OptionsPages.GENERAL.withComponent(
             ShortcutComponent("lanworlds.openLAN") {
                 mc.displayScreen(null)
+                controller = ServerController(mc.currentWorld!!.levelData.worldName)
+                EVENT_BUS.subscribe(controller)
                 mc.displayScreen(ScreenCreatingServer())
             },
         )

@@ -62,14 +62,7 @@ class MoveC2S(
     private fun createProps(): Properties {
         val data = world.levelData
         val worldName = data.worldName
-        val gamemode =
-            when (data.gamemode) {
-                0 -> "Survival"
-                1 -> "Creative"
-                2 -> "Adventure"
-                3 -> "Spectator"
-                else -> error("Invalid gamemode!")
-            }
+        val gamemode = "Survival"
         val worldType = "minecraft:" + world.worldType.languageKey.substringAfter('.')
 
         val props =

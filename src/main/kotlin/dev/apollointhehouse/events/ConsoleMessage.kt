@@ -1,6 +1,6 @@
 package dev.apollointhehouse.events
 
-import me.apollointhehouse.raywire.api.Event
+import com.smushytaco.event_library.api.Event
 
 class ConsoleMessage(
     val message: String,

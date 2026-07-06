@@ -2,6 +2,7 @@ package dev.apollointhehouse.server.actions
 
 import com.b100.utils.FileUtils
 import com.mojang.nbt.NbtIo
+import com.smushytaco.event_library.api.EventHandler
 import dev.apollointhehouse.Config.MC_SAVES_PATH
 import dev.apollointhehouse.Config.SERVER_PATH
 import dev.apollointhehouse.Config.mc
@@ -10,7 +11,6 @@ import dev.apollointhehouse.LANWorlds.LOGGER
 import dev.apollointhehouse.events.TickServer
 import dev.apollointhehouse.gui.ScreenSavingServer
 import dev.apollointhehouse.server.ServerController
-import me.apollointhehouse.raywire.api.EventHandler
 import net.minecraft.client.gui.ScreenMainMenu
 import java.io.File
 import java.util.UUID
@@ -27,8 +27,7 @@ class MoveS2C(
     }
 
     @EventHandler
-    context(_: TickServer)
-    fun tick() {
+    fun tick(event: TickServer) {
         if (proc.isAlive) return
 
         moveWorld()

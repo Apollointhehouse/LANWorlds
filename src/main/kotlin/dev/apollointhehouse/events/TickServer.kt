@@ -1,5 +1,5 @@
 package dev.apollointhehouse.events
 
-import me.apollointhehouse.raywire.api.Event
+import com.smushytaco.event_library.api.Event
 
 object TickServer : Event
